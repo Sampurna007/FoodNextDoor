@@ -50,7 +50,7 @@ const Login = ({ navigation }) => {
                 <Text style={styles.buttonText}>Sign In</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <TouchableOpacity onPress={() => navigation.navigate('register')}>
                 <Text style={styles.linkText}>
                     Don't have an account? <Text style={styles.link}>Sign Up</Text>
                 </Text>
