@@ -18,7 +18,7 @@ const Login = ({ navigation }) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             Alert.alert('Success', 'Logged in successfully!');
-            // 👉 navigation.replace('Feed') or router.replace('/(tabs)')
+            //  nnavigation.replace('Feed') or router.replace('/(tabs)')
         } catch (error) {
             Alert.alert('Login Failed', error.message);
         }
@@ -50,7 +50,7 @@ const Login = ({ navigation }) => {
                 <Text style={styles.buttonText}>Sign In</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <TouchableOpacity onPress={() => navigation.navigate('register')}>
                 <Text style={styles.linkText}>
                     Don't have an account? <Text style={styles.link}>Sign Up</Text>
                 </Text>
