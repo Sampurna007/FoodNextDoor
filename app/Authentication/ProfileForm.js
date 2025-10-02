@@ -1,12 +1,13 @@
-import { doc, getDoc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { doc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
+import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native";
 import { db, auth } from "../../utils/firebase";
 import { useRouter } from "expo-router";
 
 export default function ProfileForm() {
   const router = useRouter();
-  const [uid, setUid] = useState(null); // store current user UID
+  const uid = auth.currentUser?.uid;
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -14,55 +15,22 @@ export default function ProfileForm() {
   const [phone, setPhone] = useState("");
   const [allergens, setAllergens] = useState("");
 
-  // --- Ensure auth.currentUser is loaded ---
-  useEffect(() => {
-    if (auth.currentUser) {
-      setUid(auth.currentUser.uid);
-      // Optionally pre-fill existing profile info
-      const fetchProfile = async () => {
-        try {
-          const docRef = doc(db, "users", auth.currentUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setFirstName(data.firstName || "");
-            setLastName(data.lastName || "");
-            setUsername(data.username || "");
-            setAddress(data.address || "");
-            setPhone(data.phone || "");
-            setAllergens(data.allergens || "");
-          }
-        } catch (error) {
-          console.log("Fetch Profile Error:", error.message);
-        }
-      };
-      fetchProfile();
-    } else {
-      // if no user, redirect to login
-      router.replace("/Authentication/Login");
-    }
-  }, []);
-
-  // --- Save profile ---
   const handleSave = async () => {
+    if (!uid) return Alert.alert("Error", "User not logged in.");
+
     if (!firstName || !lastName || !username || !address || !phone) {
-      Alert.alert("Error", "Please fill out all required fields.");
-      return;
+      return Alert.alert("Error", "Please fill out all required fields.");
     }
 
     try {
-      // Check if username already exists for other users
+      // Check if username already exists
       const q = query(collection(db, "users"), where("username", "==", username));
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        const existsForOther = querySnapshot.docs.some(doc => doc.id !== uid);
-        if (existsForOther) {
-          Alert.alert("Error", "Username already taken. Please choose another.");
-          return;
-        }
+        return Alert.alert("Error", "Username already taken. Please choose another.");
       }
 
-      // Save profile data
+      // Save profile
       await setDoc(
         doc(db, "users", uid),
         {
@@ -73,15 +41,14 @@ export default function ProfileForm() {
           phone,
           allergens,
           profileCompleted: true,
-        },
-        { merge: true }
+        }
       );
 
       Alert.alert("Success", "Profile saved successfully!");
-      router.replace("/Authentication/ProfileScreen"); // redirect to home/tabs
-    } catch (error) {
-      console.log("ProfileForm Error:", error.message);
-      Alert.alert("Error", "Failed to save profile. " + error.message);
+      router.replace("/ProfileScreen"); // redirect to profile
+    } catch (err) {
+      console.log("ProfileForm Error:", err.message);
+      Alert.alert("Error", "Failed to save profile. " + err.message);
     }
   };
 
@@ -89,44 +56,12 @@ export default function ProfileForm() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Complete Your Profile</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="First Name"
-        value={firstName}
-        onChangeText={setFirstName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Last Name"
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Allergens (optional)"
-        value={allergens}
-        onChangeText={setAllergens}
-      />
+      <TextInput style={styles.input} placeholder="First Name" value={firstName} onChangeText={setFirstName} />
+      <TextInput style={styles.input} placeholder="Last Name" value={lastName} onChangeText={setLastName} />
+      <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} autoCapitalize="none" />
+      <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} />
+      <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+      <TextInput style={styles.input} placeholder="Allergens (optional)" value={allergens} onChangeText={setAllergens} />
 
       <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save Profile</Text>
