@@ -1,81 +1,69 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform } from "react-native";
-import { doc, setDoc } from "firebase/firestore";
+import { Alert, Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
 import { db, auth } from "../../utils/firebase";
 import { useRouter } from "expo-router";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import dayjs from "dayjs";
 
 export default function DonorForm({ uid }) {
   const [businessType, setBusinessType] = useState(""); // restaurant, cafe, etc.
   const [abn, setAbn] = useState("");
-  const [contact, setContact] = useState("");
+  const [contactNo, setContactNo] = useState("");
   const [address, setAddress] = useState("");
-  const [openingTime, setOpeningTime] = useState(new Date());
-  const [closingTime, setClosingTime] = useState(new Date());
-  const [showOpeningPicker, setShowOpeningPicker] = useState(false);
-  const [showClosingPicker, setShowClosingPicker] = useState(false);
+  const [openTime, setOpenTime] = useState(null);
+  const [closeTime, setCloseTime] = useState(null);
+  const [isOpenPickerVisible, setOpenPickerVisible] = useState(false);
+  const [isClosePickerVisible, setClosePickerVisible] = useState(false);
 
   const router = useRouter();
 
-  const handleSave = async () => {
-    if (!businessType || !abn || !contact || !address) {
+  const handleSubmit = async () => {
+    if (!businessType || !abn || !contactNo || !address || !openTime || !closeTime) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
 
     try {
-      await setDoc(doc(db, "users", uid), {
+      await db.collection("donors").doc(uid).set({
         businessType,
         abn,
-        contact,
+        contactNo,
         address,
-        openingHours: {
-          openingTime: openingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          closingTime: closingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-        profileCompleted: true,
-      }, { merge: true });
+        openingHours: `${dayjs(openTime).format("HH:mm")} - ${dayjs(closeTime).format("HH:mm")}`,
+        createdAt: new Date(),
+      });
 
-      Alert.alert("Success", "Profile saved successfully!");
-      router.replace("/"); // Navigate to home or dashboard
-
+      Alert.alert("Success", "Donor profile saved!");
+      router.replace("/"); // redirect to home or dashboard
     } catch (error) {
-      console.log("Error saving donor info:", error.message);
+      console.log("DonorForm Error:", error);
       Alert.alert("Error", error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Complete Your Donor Profile</Text>
+      <Text style={styles.title}>Donor Information</Text>
 
-      <Text style={styles.label}>Type of Food Business</Text>
       <TextInput
         style={styles.input}
-        placeholder="e.g., Restaurant, Cafe, Catering"
+        placeholder="Type of Business (Restaurant, Cafe, etc.)"
         value={businessType}
         onChangeText={setBusinessType}
       />
-
-      <Text style={styles.label}>ABN Number</Text>
       <TextInput
         style={styles.input}
-        placeholder="ABN"
+        placeholder="ABN Number"
         value={abn}
         onChangeText={setAbn}
-        keyboardType="numeric"
       />
-
-      <Text style={styles.label}>Contact Number</Text>
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
-        value={contact}
-        onChangeText={setContact}
+        placeholder="Contact Number"
+        value={contactNo}
+        onChangeText={setContactNo}
         keyboardType="phone-pad"
       />
-
-      <Text style={styles.label}>Address</Text>
       <TextInput
         style={styles.input}
         placeholder="Address"
@@ -83,48 +71,46 @@ export default function DonorForm({ uid }) {
         onChangeText={setAddress}
       />
 
-      {/* Opening Time */}
-      <Text style={styles.label}>Opening Time</Text>
-      <TouchableOpacity onPress={() => setShowOpeningPicker(true)} style={styles.timeButton}>
+      <TouchableOpacity
+        style={styles.timeButton}
+        onPress={() => setOpenPickerVisible(true)}
+      >
         <Text style={styles.timeText}>
-          {openingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {openTime ? `Open: ${dayjs(openTime).format("HH:mm")}` : "Select Opening Time"}
         </Text>
       </TouchableOpacity>
-      {showOpeningPicker && (
-        <DateTimePicker
-          value={openingTime}
-          mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedTime) => {
-            setShowOpeningPicker(false);
-            if (selectedTime) setOpeningTime(selectedTime);
-          }}
-        />
-      )}
 
-      {/* Closing Time */}
-      <Text style={styles.label}>Closing Time</Text>
-      <TouchableOpacity onPress={() => setShowClosingPicker(true)} style={styles.timeButton}>
+      <TouchableOpacity
+        style={styles.timeButton}
+        onPress={() => setClosePickerVisible(true)}
+      >
         <Text style={styles.timeText}>
-          {closingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {closeTime ? `Close: ${dayjs(closeTime).format("HH:mm")}` : "Select Closing Time"}
         </Text>
       </TouchableOpacity>
-      {showClosingPicker && (
-        <DateTimePicker
-          value={closingTime}
-          mode="time"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedTime) => {
-            setShowClosingPicker(false);
-            if (selectedTime) setClosingTime(selectedTime);
-          }}
-        />
-      )}
 
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Save Profile</Text>
+      <DateTimePickerModal
+        isVisible={isOpenPickerVisible}
+        mode="time"
+        onConfirm={(time) => {
+          setOpenTime(time);
+          setOpenPickerVisible(false);
+        }}
+        onCancel={() => setOpenPickerVisible(false)}
+      />
+
+      <DateTimePickerModal
+        isVisible={isClosePickerVisible}
+        mode="time"
+        onConfirm={(time) => {
+          setCloseTime(time);
+          setClosePickerVisible(false);
+        }}
+        onCancel={() => setClosePickerVisible(false)}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Save Donor Info</Text>
       </TouchableOpacity>
     </View>
   );
@@ -132,9 +118,10 @@ export default function DonorForm({ uid }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, backgroundColor: "#fff" },
-  title: { fontSize: 26, fontWeight: "bold", marginBottom: 16, color: "#2e7d32" },
-  label: { fontSize: 16, marginBottom: 8, color: "#555" },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, color: "#2e7d32" },
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 16 },
+  button: { backgroundColor: "#388e3c", padding: 14, borderRadius: 8, alignItems: "center" },
+  buttonText: { color: "#fff", fontSize: 16 },
   timeButton: {
     borderWidth: 1,
     borderColor: "#388e3c",
@@ -144,6 +131,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeText: { color: "#388e3c", fontWeight: "bold" },
-  button: { backgroundColor: "#388e3c", padding: 14, borderRadius: 8, alignItems: "center" },
-  buttonText: { color: "#fff", fontSize: 16 },
 });
