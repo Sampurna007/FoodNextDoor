@@ -31,21 +31,25 @@ export default function ProfileForm() {
       }
 
       // Save profile
-      await setDoc(
-        doc(db, "users", uid),
-        {
-          firstName,
-          lastName,
-          username,
-          address,
-          phone,
-          allergens,
-          profileCompleted: true,
-        }
-      );
+     await setDoc(
+  doc(db, "users", uid),
+  {
+    firstName,
+    lastName,
+    username,
+    address,
+    phone,
+    allergens,
+    profileCompleted: true,
+  },
+  { 
+    merge: true } // with other info of the user
+);
+
+      console.log("Profile saved successfully!");
 
       Alert.alert("Success", "Profile saved successfully!");
-      router.replace("/ProfileScreen"); // redirect to profile
+      router.replace("/Authentication/ProfileScreen"); // redirect to profile
     } catch (err) {
       console.log("ProfileForm Error:", err.message);
       Alert.alert("Error", "Failed to save profile. " + err.message);
