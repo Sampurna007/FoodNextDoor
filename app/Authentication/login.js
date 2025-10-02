@@ -1,8 +1,8 @@
+import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth } from "../../utils/firebase";
-import { useRouter } from "expo-router";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,7 +18,7 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert("Success", "Logged in successfully!");
-      router.replace("/");  // back to GetStarted page (home)
+      router.replace("/Authentication/ProfileScreen");
     } catch (error) {
       Alert.alert("Login Failed", error.message);
     }
