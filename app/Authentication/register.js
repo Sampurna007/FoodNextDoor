@@ -24,11 +24,11 @@ export default function Register() {
     }
 
     try {
-      // Step 1: Create Auth user
+      // Step 1: Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      // Step 2: Save user info in Firestore
+      // Step 2: Save basic user info in Firestore
       await setDoc(doc(db, "users", uid), {
         email,
         role,          // Food Sharer / Food Donor
@@ -36,7 +36,13 @@ export default function Register() {
       });
 
       Alert.alert("Success", "Account created successfully!");
-      router.replace("/");  // Navigate to home or dashboard
+
+      // Step 3: Redirect based on role
+      if (role === "Food Sharer") {
+        router.replace("/Authentication/ProfileForm"); // redirect Food Sharer
+      } else if (role === "Food Donor") {
+        router.replace("/Authentication/DonorForm");   // redirect Food Donor
+      }
 
     } catch (error) {
       console.log("Registration Error:", error.message);
