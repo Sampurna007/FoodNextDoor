@@ -12,7 +12,7 @@ export default function Register() {
   const [email, setEmail] = useState(""); // stores the email entered by the user
   const [password, setPassword] = useState(""); // stores the password entered
   const [confirmPassword, setConfirmPassword] = useState(""); // stores the confirmation password
-  const [role, setRole] = useState("Food Sharer"); // new registered role selected
+  const [role, setRole] = useState("Food Receiver"); // new registered role selected
   const router = useRouter(); // Used to navigate between screens
 
   // Function that handles registration when user presses the button
@@ -43,7 +43,7 @@ export default function Register() {
       Alert.alert("Success", "Account created successfully!");
 
       // Step 3: Redirect based on role
-      if (role === "Food Sharer") {
+      if (role === "Food Receiver") {
         router.replace("/Authentication/ProfileForm"); // redirect Food Sharer extra details
       } else if (role === "Food Donor") {
         router.replace("/Authentication/DonorForm");   // redirect Food Donor extra details ie Type Address etc
@@ -65,10 +65,10 @@ export default function Register() {
       <Text style={styles.label}>I am a:</Text>
       <View style={styles.roleContainer}>
         <TouchableOpacity
-          style={[styles.roleButton, role === "Food Sharer" && styles.roleButtonSelected]}
-          onPress={() => setRole("Food Sharer")}
+          style={[styles.roleButton, role === "Food Receiver" && styles.roleButtonSelected]}
+          onPress={() => setRole("Food Receiver")}
         >
-          <Text style={[styles.roleText, role === "Food Sharer" && { color: "#fff" }]}>
+          <Text style={[styles.roleText, role === "Food Receiver" && { color: "#fff" }]}>
             Food Sharer
           </Text>
         </TouchableOpacity>

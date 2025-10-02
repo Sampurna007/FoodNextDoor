@@ -39,7 +39,7 @@ export default function DonorForm({ uid }) {
       });
 
       Alert.alert("Success", "Donor profile saved!");
-      router.replace("/"); // redirect to home or dashboard
+      router.replace("/Authentication/ProfileScreen"); // redirect to home or dashboard
     } catch (error) {
       console.log("DonorForm Error:", error);
       Alert.alert("Error", error.message);
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignItems: "center",
   },
-  
+
   timeText: { 
     color: "#388e3c",
      fontWeight: "bold"
