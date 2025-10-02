@@ -2,11 +2,12 @@
 
 // Import necessary hooks and Firebase functions
 import { useRouter } from "expo-router"; // Navigation
-import { createUserWithEmailAndPassword } from "firebase/auth"; // Firebase Auth
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; // Firebase Auth
 import { doc, setDoc } from "firebase/firestore"; // Firestore
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth, db } from "../../utils/firebase"; // Firebase config
+
 
 // Main Register component
 export default function Register() {
