@@ -28,21 +28,26 @@ export default function DonorForm({ uid }) {
       return;
     }
       // Step 2: Save donor info to Firestore
-    try {
-      await db.collection("donors").doc(uid).set({
-        businessType,
-        abn,
-        contactNo,
-        address,
-        openingHours: `${dayjs(openTime).format("HH:mm")} - ${dayjs(closeTime).format("HH:mm")}`,
-        createdAt: new Date(),
-      });
+  try {
+      // Save donor profile info
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          businessType,
+          abn,
+          contact,
+          address,
+          openingHours,
+          profileCompleted: true,
+        },
+        { merge: true } // merge with existing user document
+      );
 
-      Alert.alert("Success", "Donor profile saved!");
-      router.replace("/Authentication/ProfileScreen"); // redirect to home or dashboard
+      Alert.alert("Success", "Donor profile saved successfully!");
+      router.replace("/Authentication/ProfileScreen"); // redirect to home/tabs
     } catch (error) {
-      console.log("DonorForm Error:", error);
-      Alert.alert("Error", error.message);
+      console.log("DonorForm Error:", error.message);
+      Alert.alert("Error", "Failed to save profile. " + error.message);
     }
   };
   // UI layout for the donor form

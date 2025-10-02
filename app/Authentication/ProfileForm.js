@@ -1,8 +1,8 @@
-import { doc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
-import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native";
-import { db, auth } from "../../utils/firebase";
 import { useRouter } from "expo-router";
+import { collection, doc, getDocs, query, setDoc, where } from "firebase/firestore";
+import { useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native";
+import { auth, db } from "../../utils/firebase";
 
 export default function ProfileForm() {
   const router = useRouter();
@@ -14,6 +14,8 @@ export default function ProfileForm() {
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [allergens, setAllergens] = useState("");
+
+  // const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!uid) return Alert.alert("Error", "User not logged in.");
@@ -31,20 +33,21 @@ export default function ProfileForm() {
       }
 
       // Save profile
-     await setDoc(
-  doc(db, "users", uid),
-  {
-    firstName,
-    lastName,
-    username,
-    address,
-    phone,
-    allergens,
-    profileCompleted: true,
-  },
-  { 
-    merge: true } // with other info of the user
-);
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          firstName,
+          lastName,
+          username,
+          address,
+          phone,
+          allergens,
+          profileCompleted: true,
+        },
+        {
+          merge: true
+        } // with other info of the user
+      );
 
       console.log("Profile saved successfully!");
 
