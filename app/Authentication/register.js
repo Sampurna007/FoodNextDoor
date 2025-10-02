@@ -43,8 +43,9 @@ export default function Register() {
         profileCompleted: false, // will complete profile later
         createdAt: new Date(),
       });
+       console.log("Firestore user doc created");
 
-      Alert.alert("Success", "Account created successfully!");
+       Alert.alert("Success", "Account created successfully!");
 
       // Step 4: Redirect based on role
       if (role === "Food Receiver") {
@@ -53,7 +54,7 @@ export default function Register() {
         router.replace("/Authentication/DonorForm");
       }
     } catch (error) {
-      console.log("Registration Error:", error.message);
+      console.log("Registration Error:", error.code, error.message);
       Alert.alert("Registration Failed", error.message);
     }
   };

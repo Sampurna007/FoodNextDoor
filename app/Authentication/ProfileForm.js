@@ -78,9 +78,41 @@ export default function ProfileForm() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: "center", padding: 24, backgroundColor: "#fff" },
-  title: { fontSize: 26, fontWeight: "bold", marginBottom: 24, color: "#2e7d32", textAlign: "center" },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 16 },
-  button: { backgroundColor: "#388e3c", padding: 14, borderRadius: 8, alignItems: "center", marginTop: 10 },
-  buttonText: { color: "#fff", fontSize: 16 },
+
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#fff"
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    marginBottom: 24,
+    color: "#2e7d32",
+    textAlign: "center"
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16
+  },
+
+  button: {
+    backgroundColor: "#388e3c",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontSize: 16
+  },
+
 });
