@@ -1,13 +1,16 @@
-import { doc, getDoc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
+// Import necessary Firebase and React Native functions
+import { doc, getDoc, setDoc, query, collection, where, getDocs } from "firebase/firestore"; // firevase function
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native";
-import { db, auth } from "../../utils/firebase";
+import { db, auth } from "../../utils/firebase"; // Firebase configuration (auth and database)
 import { useRouter } from "expo-router";
 
+// Main component for the profile form
 export default function ProfileForm() {
   const router = useRouter();
   const uid = auth.currentUser?.uid;
 
+    // State variables to store user input
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -15,7 +18,9 @@ export default function ProfileForm() {
   const [phone, setPhone] = useState("");
   const [allergens, setAllergens] = useState("");
 
+    // Function to save the profile data
   const handleSave = async () => {
+        // Check if required fields are filled
     if (!firstName || !lastName || !username || !address || !phone) {
       Alert.alert("Error", "Please fill out all required fields.");
       return;
@@ -40,7 +45,7 @@ export default function ProfileForm() {
           address,
           phone,
           allergens,
-          profileCompleted: true,
+          profileCompleted: true, // to indicate profile is complete
         },
         { merge: true } // merge with existing user document
       );
@@ -53,6 +58,7 @@ export default function ProfileForm() {
     }
   };
 
+    // UI layout for the profile form
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Complete Your Profile</Text>
@@ -102,11 +108,41 @@ export default function ProfileForm() {
     </ScrollView>
   );
 }
-
+// Styling for the profile form screen
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: "center", padding: 24, backgroundColor: "#fff" },
-  title: { fontSize: 26, fontWeight: "bold", marginBottom: 24, color: "#2e7d32", textAlign: "center" },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 16 },
-  button: { backgroundColor: "#388e3c", padding: 14, borderRadius: 8, alignItems: "center", marginTop: 10 },
-  buttonText: { color: "#fff", fontSize: 16 },
+  container: { 
+    flexGrow: 1, 
+    justifyContent: "center",
+     padding: 24, 
+     backgroundColor: "#fff" 
+    },
+
+  title: { 
+    fontSize: 26, 
+    fontWeight: "bold", 
+    marginBottom: 24, 
+    color: "#2e7d32",
+     textAlign: "center"
+     },
+
+  input: {
+     borderWidth: 1,
+      borderColor: "#ccc", 
+      borderRadius: 8, 
+      padding: 12, 
+      marginBottom: 16 
+    },
+
+  button: {
+     backgroundColor: "#388e3c",
+      padding: 14, 
+      borderRadius: 8, 
+      alignItems: "center",
+       marginTop: 10 
+    },
+
+  buttonText: { 
+    color: "#fff",
+     fontSize: 16 
+    },
 });
