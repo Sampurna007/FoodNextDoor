@@ -1,16 +1,16 @@
-// Import necessary Firebase and React Native functions
-import { doc, getDoc, setDoc, query, collection, where, getDocs } from "firebase/firestore"; // firevase function
-import { useState } from "react";
+// Import necessary hooks and components from React Native and Firebase
+import { useState, useEffect } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native";
-import { db, auth } from "../../utils/firebase"; // Firebase configuration (auth and database)
+import { db, auth } from "../../utils/firebase"; // Firebase configuration
+import { doc, getDoc, setDoc, query, collection, where, getDocs } from "firebase/firestore"; 
 import { useRouter } from "expo-router";
 
-// Main component for the profile form
+// Main component for completing or editing user profile
 export default function ProfileForm() {
   const router = useRouter();
-  const uid = auth.currentUser?.uid;
+  const uid = auth.currentUser?.uid; // Current logged-in user's UID
 
-    // State variables to store user input
+  // State variables to store user input
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -18,24 +18,56 @@ export default function ProfileForm() {
   const [phone, setPhone] = useState("");
   const [allergens, setAllergens] = useState("");
 
-    // Function to save the profile data
+  // Fetch existing user data to pre-fill form if available
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!uid) return; // Exit if no user is logged in
+      try {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setFirstName(data.firstName || "");
+          setLastName(data.lastName || "");
+          setUsername(data.username || "");
+          setAddress(data.address || "");
+          setPhone(data.phone || "");
+          setAllergens(data.allergens || "");
+        }
+      } catch (error) {
+        console.log("Error fetching user data:", error.message);
+      }
+    };
+    fetchUserData();
+  }, [uid]);
+
+  // Function to save profile data to Firestore
   const handleSave = async () => {
-        // Check if required fields are filled
+    if (!uid) {
+      Alert.alert("Error", "No user is logged in.");
+      return;
+    }
+
+    // Validate required fields
     if (!firstName || !lastName || !username || !address || !phone) {
       Alert.alert("Error", "Please fill out all required fields.");
       return;
     }
 
     try {
-      // Check if username already exists
+      // Check if the username is already taken by another user
       const q = query(collection(db, "users"), where("username", "==", username));
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        Alert.alert("Error", "Username already taken. Please choose another.");
-        return;
+        // If there's a username match that isn't the current user
+        const usernameTakenByOther = querySnapshot.docs.some(docSnap => docSnap.id !== uid);
+        if (usernameTakenByOther) {
+          Alert.alert("Error", "Username already taken. Please choose another.");
+          return;
+        }
       }
 
-      // Save additional profile info
+      // Save profile information to Firestore, merge with existing document
       await setDoc(
         doc(db, "users", uid),
         {
@@ -45,20 +77,31 @@ export default function ProfileForm() {
           address,
           phone,
           allergens,
-          profileCompleted: true, // to indicate profile is complete
+          profileCompleted: true, // mark profile as complete
         },
-        { merge: true } // merge with existing user document
+        { merge: true }
       );
 
       Alert.alert("Success", "Profile saved successfully!");
-      router.replace("/(tabs)"); // redirect to home/tabs after profile completion
+
+      // Redirect depending on role
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const role = userDoc.data()?.role;
+      if (role === "Food Donor") {
+        router.replace("/Authentication/DonorForm"); // Donor completes business info
+      } else if (role === "Food Receiver") {
+        router.replace("/(tabs)"); // Receiver redirected to main tabs/home
+      } else {
+        router.replace("/(tabs)");
+      }
+
     } catch (error) {
       console.log("ProfileForm Error:", error.message);
       Alert.alert("Error", "Failed to save profile. " + error.message);
     }
   };
 
-    // UI layout for the profile form
+  // UI for the profile form
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Complete Your Profile</Text>
@@ -108,41 +151,42 @@ export default function ProfileForm() {
     </ScrollView>
   );
 }
+
 // Styling for the profile form screen
 const styles = StyleSheet.create({
   container: { 
     flexGrow: 1, 
-    justifyContent: "center",
-     padding: 24, 
-     backgroundColor: "#fff" 
-    },
+    padding: 24, 
+    backgroundColor: "#fff" 
+  },
 
   title: { 
     fontSize: 26, 
     fontWeight: "bold", 
     marginBottom: 24, 
     color: "#2e7d32",
-     textAlign: "center"
-     },
+    textAlign: "center"
+  },
 
   input: {
-     borderWidth: 1,
-      borderColor: "#ccc", 
-      borderRadius: 8, 
-      padding: 12, 
-      marginBottom: 16 
-    },
+    borderWidth: 1,
+    borderColor: "#ccc", 
+    borderRadius: 8, 
+    padding: 12, 
+    marginBottom: 16,
+    color: "#000" // ensure text is visible
+  },
 
   button: {
-     backgroundColor: "#388e3c",
-      padding: 14, 
-      borderRadius: 8, 
-      alignItems: "center",
-       marginTop: 10 
-    },
+    backgroundColor: "#388e3c",
+    padding: 14, 
+    borderRadius: 8, 
+    alignItems: "center",
+    marginTop: 10 
+  },
 
   buttonText: { 
     color: "#fff",
-     fontSize: 16 
-    },
+    fontSize: 16 
+  },
 });

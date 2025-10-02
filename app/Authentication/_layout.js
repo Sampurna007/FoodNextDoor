@@ -13,9 +13,9 @@ export default function Layout() {
       <Stack.Screen name="index" options={{ title: "Welcome" }} />
       <Stack.Screen name="Authentication/Register" options={{ title: "Register" }} />
       <Stack.Screen name="Authentication/Login" options={{ title: "Login" }} />
-      <Stack.Screen name="Authentication/ReceiverForm" options={{ title: "Complete Profile" }} />
+      <Stack.Screen name="Authentication/ProfileForm" options={{ title: "Complete Profile" }} />
       <Stack.Screen name="Authentication/DonorForm" options={{ title: "Business Details" }} />
-      <Stack.Screen name="Profile" options={{ title: "My Profile" }} />
+      <Stack.Screen name="Authentication/ProfileScreen" options={{ title: "My Profile" }} />
     </Stack>
   );
 }

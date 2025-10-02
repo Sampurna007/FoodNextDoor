@@ -1,61 +1,64 @@
-// Import necessary Firebase functions and React Native components
-import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword } from "firebase/auth"; // Firebase function to create a new user
-import { doc, setDoc } from "firebase/firestore"; // Firestore functions to save user data
+// app/Authentication/Register.js
+
+// Import necessary hooks and Firebase functions
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth, db } from "../../utils/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth"; // Firebase Auth
+import { doc, setDoc } from "firebase/firestore"; // Firestore
+import { auth, db } from "../../utils/firebase"; // Firebase config
+import { useRouter } from "expo-router"; // Navigation
 
-// main Register component
+// Main Register component
 export default function Register() {
-  // variables to store user input
-  const [email, setEmail] = useState(""); // stores the email entered by the user
-  const [password, setPassword] = useState(""); // stores the password entered
-  const [confirmPassword, setConfirmPassword] = useState(""); // stores the confirmation password
-  const [role, setRole] = useState("Food Receiver"); // new registered role selected
-  const router = useRouter(); // Used to navigate between screens
+  const router = useRouter();
 
-  // Function that handles registration when user presses the button
+  // --- State variables ---
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("Food Receiver"); // default role
+
+  // --- Handle registration ---
   const handleRegister = async () => {
-    // Step 1: Check if all fields are filled
+    // Step 1: Validate inputs
     if (!email || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
     }
-    // Step 2: Check if passwords match
+
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
     try {
-      // Step 3: Create a new user in Firebase Authentication
+      // Step 2: Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      // Step 4: Save user info in Firestore database
+      // Step 3: Save basic user info in Firestore
       await setDoc(doc(db, "users", uid), {
         email,
-        role,     // Save selected role (Food Sharer or Food Donor)
+        role, // Food Receiver or Food Donor
+        profileCompleted: false, // will complete profile later
         createdAt: new Date(),
       });
 
       Alert.alert("Success", "Account created successfully!");
 
-      // Step 3: Redirect based on role
+      // Step 4: Redirect based on role
       if (role === "Food Receiver") {
-        router.replace("/Authentication/ProfileForm"); // redirect Food Sharer extra details
+        router.replace("/Authentication/ProfileForm");
       } else if (role === "Food Donor") {
-        router.replace("/Authentication/DonorForm");   // redirect Food Donor extra details ie Type Address etc
+        router.replace("/Authentication/DonorForm");
       }
-
     } catch (error) {
       console.log("Registration Error:", error.message);
       Alert.alert("Registration Failed", error.message);
     }
   };
 
-  // UI layout for the registration screen
+  // --- UI for Register screen ---
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
@@ -69,7 +72,7 @@ export default function Register() {
           onPress={() => setRole("Food Receiver")}
         >
           <Text style={[styles.roleText, role === "Food Receiver" && { color: "#fff" }]}>
-            Food Sharer
+            Food Receiver
           </Text>
         </TouchableOpacity>
 
@@ -115,39 +118,34 @@ export default function Register() {
   );
 }
 
-// Styling for the Register screen
+// --- Styles ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
-
   title: {
     fontSize: 26,
     fontWeight: "bold",
     marginBottom: 8,
-    color: "#2e7d32"
+    color: "#2e7d32",
   },
-
   subtitle: {
     fontSize: 16,
     marginBottom: 16,
-    color: "#555"
+    color: "#555",
   },
-
   label: {
     fontSize: 16,
     marginBottom: 8,
-    color: "#555"
+    color: "#555",
   },
-
   roleContainer: {
     flexDirection: "row",
-    marginBottom: 20
+    marginBottom: 20,
   },
-
   roleButton: {
     flex: 1,
     padding: 12,
@@ -170,19 +168,17 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    marginBottom: 16
+    marginBottom: 16,
   },
-
   button: {
     backgroundColor: "#388e3c",
     padding: 14,
     borderRadius: 8,
-    alignItems: "center"
+    alignItems: "center",
   },
-
   buttonText: {
     color: "#fff",
-    fontSize: 16
+    fontSize: 16,
+    fontWeight: "bold",
   },
-
 });
