@@ -1,12 +1,12 @@
 // app/Authentication/Register.js
 
 // Import necessary hooks and Firebase functions
-import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router"; // Navigation
 import { createUserWithEmailAndPassword } from "firebase/auth"; // Firebase Auth
 import { doc, setDoc } from "firebase/firestore"; // Firestore
+import { useState } from "react";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth, db } from "../../utils/firebase"; // Firebase config
-import { useRouter } from "expo-router"; // Navigation
 
 // Main Register component
 export default function Register() {
@@ -36,6 +36,12 @@ export default function Register() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
+       await sendEmailVerification(user);  // 
+         Alert.alert(
+        "Verify Your Email",
+        "We sent a verification link to your email. Please verify before logging in."
+      );
+
       // Step 3: Save basic user info in Firestore
       await setDoc(doc(db, "users", uid), {
         email,
@@ -43,9 +49,9 @@ export default function Register() {
         profileCompleted: false, // will complete profile later
         createdAt: new Date(),
       });
-       console.log("Firestore user doc created");
+      console.log("Firestore user doc created");
 
-       Alert.alert("Success", "Account created successfully!");
+      Alert.alert("Success", "Account created successfully!");
 
       // Step 4: Redirect based on role
       if (role === "Food Receiver") {
