@@ -1,78 +1,73 @@
 // app/Authentication/Register.js
 
-// Import necessary hooks and Firebase functions
-import { useRouter } from "expo-router"; // Navigation
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; // Firebase Auth
-import { doc, setDoc } from "firebase/firestore"; // Firestore
+import { useRouter } from "expo-router";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth, db } from "../../utils/firebase"; // Firebase config
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { auth, db } from "../../utils/firebase";
 
-
-// Main Register component
 export default function Register() {
   const router = useRouter();
 
-  // --- State variables ---
+  // --- State ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("Food Receiver"); // default role
+  const [role, setRole] = useState("Food Receiver");
+  const [loading, setLoading] = useState(false); // disable button while processing
 
-  // --- Handle registration ---
+  // --- Handle Registration ---
   const handleRegister = async () => {
-    // Step 1: Validate inputs
     if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill out all fields.");
-      return;
+      return Alert.alert("Error", "Please fill out all fields.");
+    }
+    if (password !== confirmPassword) {
+      return Alert.alert("Error", "Passwords do not match.");
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
-      return;
-    }
+    setLoading(true);
 
     try {
-      // Step 2: Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-       await sendEmailVerification(user);  // 
-         Alert.alert(
-        "Verify Your Email",
-        "We sent a verification link to your email. Please verify before logging in."
-      );
-
-      // Step 3: Save basic user info in Firestore
+      // Save minimal info in Firestore
       await setDoc(doc(db, "users", user.uid), {
         email,
-        role, // Food Receiver or Food Donor
-        profileCompleted: false, // will complete profile later
+        role,
+        isBusiness: role === "Food Donor", // true if Donor, false if Receiver
+        profileCompleted: false,
         createdAt: new Date(),
       });
-      console.log("Firestore user doc created");
 
-      Alert.alert("Success", "Account created successfully!");
+      // Send verification email
+      await sendEmailVerification(user);
 
-      // Step 4: Redirect based on role
-      if (role === "Food Receiver") {
-        router.replace("/Authentication/ProfileForm");
-      } else if (role === "Food Donor") {
-        router.replace("/Authentication/DonorForm");
-      }
+      // Navigate to login only after alert is dismissed
+      Alert.alert(
+        "Verify Your Email",
+        "We sent a verification link to your email. Please verify before logging in.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/Authentication/Login"),
+          },
+        ]
+      );
     } catch (error) {
       console.log("Registration Error:", error.code, error.message);
       Alert.alert("Registration Failed", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // --- UI for Register screen ---
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
       <Text style={styles.subtitle}>Join the FoodNextDoor community</Text>
 
-      {/* Role Selector */}
       <Text style={styles.label}>I am a:</Text>
       <View style={styles.roleContainer}>
         <TouchableOpacity
@@ -94,99 +89,49 @@ export default function Register() {
         </TouchableOpacity>
       </View>
 
-      {/* Email / Password Inputs */}
       <TextInput
         style={styles.input}
         placeholder="Email"
+        autoCapitalize="none"
+        keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
+        editable={!loading}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
+        secureTextEntry
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
+        editable={!loading}
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
+        secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
-        secureTextEntry
+        editable={!loading}
       />
 
-      {/* Register Button */}
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
+      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Register</Text>}
       </TouchableOpacity>
     </View>
   );
 }
 
-// --- Styles ---
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#2e7d32",
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 16,
-    color: "#555",
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: "#555",
-  },
-  roleContainer: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  roleButton: {
-    flex: 1,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#388e3c",
-    borderRadius: 8,
-    marginHorizontal: 5,
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  roleButtonSelected: {
-    backgroundColor: "#388e3c",
-  },
-  roleText: {
-    fontWeight: "bold",
-    color: "#388e3c",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: "#388e3c",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#fff" },
+  title: { fontSize: 26, fontWeight: "bold", marginBottom: 8, color: "#2e7d32" },
+  subtitle: { fontSize: 16, marginBottom: 16, color: "#555" },
+  label: { fontSize: 16, marginBottom: 8, color: "#555" },
+  roleContainer: { flexDirection: "row", marginBottom: 20 },
+  roleButton: { flex: 1, padding: 12, borderWidth: 1, borderColor: "#388e3c", borderRadius: 8, marginHorizontal: 5, alignItems: "center", backgroundColor: "#fff" },
+  roleButtonSelected: { backgroundColor: "#388e3c" },
+  roleText: { fontWeight: "bold", color: "#388e3c" },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 16 },
+  button: { backgroundColor: "#388e3c", padding: 14, borderRadius: 8, alignItems: "center" },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });
