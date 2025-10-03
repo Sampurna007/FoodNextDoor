@@ -35,7 +35,7 @@ export default function Register() {
     try {
       // Step 2: Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
+      const user = userCredential.user;
 
        await sendEmailVerification(user);  // 
          Alert.alert(
@@ -44,7 +44,7 @@ export default function Register() {
       );
 
       // Step 3: Save basic user info in Firestore
-      await setDoc(doc(db, "users", uid), {
+      await setDoc(doc(db, "users", user.uid), {
         email,
         role, // Food Receiver or Food Donor
         profileCompleted: false, // will complete profile later

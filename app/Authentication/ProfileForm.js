@@ -1,3 +1,5 @@
+// app/Authentication/ProfileForm.js
+
 import { useRouter } from "expo-router";
 import { collection, doc, getDocs, query, setDoc, where } from "firebase/firestore";
 import { useState } from "react";
@@ -15,8 +17,6 @@ export default function ProfileForm() {
   const [phone, setPhone] = useState("");
   const [allergens, setAllergens] = useState("");
 
-  // const [saving, setSaving] = useState(false);
-
   const handleSave = async () => {
     if (!uid) return Alert.alert("Error", "User not logged in.");
 
@@ -32,7 +32,7 @@ export default function ProfileForm() {
         return Alert.alert("Error", "Username already taken. Please choose another.");
       }
 
-      // Save profile
+      // Save profile with merge so other fields stay
       await setDoc(
         doc(db, "users", uid),
         {
@@ -44,15 +44,14 @@ export default function ProfileForm() {
           allergens,
           profileCompleted: true,
         },
-        {
-          merge: true
-        } // with other info of the user
+        { merge: true }
       );
 
       console.log("Profile saved successfully!");
-
       Alert.alert("Success", "Profile saved successfully!");
-      router.replace("/Authentication/ProfileScreen"); // redirect to profile
+
+      // Redirect to ProfileScreen
+      router.replace("/Authentication/ProfileScreen");
     } catch (err) {
       console.log("ProfileForm Error:", err.message);
       Alert.alert("Error", "Failed to save profile. " + err.message);
@@ -63,12 +62,44 @@ export default function ProfileForm() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Complete Your Profile</Text>
 
-      <TextInput style={styles.input} placeholder="First Name" value={firstName} onChangeText={setFirstName} />
-      <TextInput style={styles.input} placeholder="Last Name" value={lastName} onChangeText={setLastName} />
-      <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} />
-      <TextInput style={styles.input} placeholder="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-      <TextInput style={styles.input} placeholder="Allergens (optional)" value={allergens} onChangeText={setAllergens} />
+      <TextInput
+        style={styles.input}
+        placeholder="First Name"
+        value={firstName}
+        onChangeText={setFirstName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Last Name"
+        value={lastName}
+        onChangeText={setLastName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Address"
+        value={address}
+        onChangeText={setAddress}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Phone Number"
+        value={phone}
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Allergens (optional)"
+        value={allergens}
+        onChangeText={setAllergens}
+      />
 
       <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save Profile</Text>
@@ -78,41 +109,35 @@ export default function ProfileForm() {
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
-
   title: {
     fontSize: 26,
     fontWeight: "bold",
     marginBottom: 24,
     color: "#2e7d32",
-    textAlign: "center"
+    textAlign: "center",
   },
-
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    marginBottom: 16
+    marginBottom: 16,
   },
-
   button: {
     backgroundColor: "#388e3c",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 10
+    marginTop: 10,
   },
-
   buttonText: {
     color: "#fff",
-    fontSize: 16
+    fontSize: 16,
   },
-
 });
