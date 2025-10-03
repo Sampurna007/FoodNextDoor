@@ -1,18 +1,27 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+// app/Authentication/Register.js
+
+// Import necessary hooks and Firebase functions
+import { useRouter } from "expo-router"; // Navigation
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; // Firebase Auth
+import { doc, setDoc } from "firebase/firestore"; // Firestore
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth, db } from "../../utils/firebase";
-import { useRouter } from "expo-router";
+import { auth, db } from "../../utils/firebase"; // Firebase config
 
+
+// Main Register component
 export default function Register() {
+  const router = useRouter();
+
+  // --- State variables ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("Food Sharer"); // default role
-  const router = useRouter();
+  const [role, setRole] = useState("Food Receiver"); // default role
 
+  // --- Handle registration ---
   const handleRegister = async () => {
+    // Step 1: Validate inputs
     if (!email || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill out all fields.");
       return;
@@ -24,32 +33,40 @@ export default function Register() {
     }
 
     try {
-      // Step 1: Create Firebase Auth user
+      // Step 2: Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      // Step 2: Save basic user info in Firestore
+       await sendEmailVerification(user);  // 
+         Alert.alert(
+        "Verify Your Email",
+        "We sent a verification link to your email. Please verify before logging in."
+      );
+
+      // Step 3: Save basic user info in Firestore
       await setDoc(doc(db, "users", uid), {
         email,
-        role,          // Food Sharer / Food Donor
+        role, // Food Receiver or Food Donor
+        profileCompleted: false, // will complete profile later
         createdAt: new Date(),
       });
+      console.log("Firestore user doc created");
 
       Alert.alert("Success", "Account created successfully!");
 
-      // Step 3: Redirect based on role
-      if (role === "Food Sharer") {
-        router.replace("/Authentication/ProfileForm"); // redirect Food Sharer
+      // Step 4: Redirect based on role
+      if (role === "Food Receiver") {
+        router.replace("/Authentication/ProfileForm");
       } else if (role === "Food Donor") {
-        router.replace("/Authentication/DonorForm");   // redirect Food Donor
+        router.replace("/Authentication/DonorForm");
       }
-
     } catch (error) {
-      console.log("Registration Error:", error.message);
+      console.log("Registration Error:", error.code, error.message);
       Alert.alert("Registration Failed", error.message);
     }
   };
 
+  // --- UI for Register screen ---
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
@@ -59,11 +76,11 @@ export default function Register() {
       <Text style={styles.label}>I am a:</Text>
       <View style={styles.roleContainer}>
         <TouchableOpacity
-          style={[styles.roleButton, role === "Food Sharer" && styles.roleButtonSelected]}
-          onPress={() => setRole("Food Sharer")}
+          style={[styles.roleButton, role === "Food Receiver" && styles.roleButtonSelected]}
+          onPress={() => setRole("Food Receiver")}
         >
-          <Text style={[styles.roleText, role === "Food Sharer" && { color: "#fff" }]}>
-            Food Sharer
+          <Text style={[styles.roleText, role === "Food Receiver" && { color: "#fff" }]}>
+            Food Receiver
           </Text>
         </TouchableOpacity>
 
@@ -109,12 +126,34 @@ export default function Register() {
   );
 }
 
+// --- Styles ---
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#fff" },
-  title: { fontSize: 26, fontWeight: "bold", marginBottom: 8, color: "#2e7d32" },
-  subtitle: { fontSize: 16, marginBottom: 16, color: "#555" },
-  label: { fontSize: 16, marginBottom: 8, color: "#555" },
-  roleContainer: { flexDirection: "row", marginBottom: 20 },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#2e7d32",
+  },
+  subtitle: {
+    fontSize: 16,
+    marginBottom: 16,
+    color: "#555",
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: "#555",
+  },
+  roleContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
   roleButton: {
     flex: 1,
     padding: 12,
@@ -132,7 +171,22 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#388e3c",
   },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 16 },
-  button: { backgroundColor: "#388e3c", padding: 14, borderRadius: 8, alignItems: "center" },
-  buttonText: { color: "#fff", fontSize: 16 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: "#388e3c",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
