@@ -15,14 +15,14 @@ export default function GetStarted() {
 
       <TouchableOpacity
         style={styles.buttonPrimary}
-        onPress={() => router.push("/Authentication/Login")}
+onPress={() => router.push("/Authentication/login")}
       >
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.buttonSecondary}
-        onPress={() => router.push("/Authentication/Register")}
+        onPress={() => router.push("/Authentication/register")}
       >
         <Text style={styles.buttonText}>Create Account</Text>
       </TouchableOpacity>
