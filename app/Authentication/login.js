@@ -1,9 +1,9 @@
 // app/Authentication/Login.js
 
 import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { auth } from "../../utils/firebase";
 
 export default function Login() {
@@ -20,7 +20,7 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert("Success", "Logged in successfully!", [
-        { text: "OK", onPress: () => router.replace("/Authentication/FoodReceiverProfile") },
+        { text: "OK", onPress: () => router.replace("/Listings/HomeScreen") },
       ]);
     } catch (error) {
       Alert.alert("Login Failed", error.message);
@@ -73,44 +73,51 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 24, 
+  container: {
+    flex: 1,
+    padding: 24,
     justifyContent: "center",
-     backgroundColor: "#fff" },
+    backgroundColor: "#fff"
+  },
 
   title: {
-     fontSize: 26, 
-     fontWeight: "bold", 
-     marginBottom: 16, 
-     color: "#2e7d32",
-      textAlign: "center" },
+    fontSize: 26,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#2e7d32",
+    textAlign: "center"
+  },
 
   input: {
-     borderWidth: 1,
-      borderColor: "#ccc",
-       borderRadius: 8, 
-       padding: 12,
-        marginBottom: 16 },
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16
+  },
 
-  button: { 
+  button: {
     backgroundColor: "#388e3c",
-     padding: 14, 
-     borderRadius: 8,
-      alignItems: "center", 
-      marginVertical: 5 },
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 5
+  },
 
   buttonText: {
-     color: "#fff",
-      fontSize: 16, 
-      fontWeight: "bold" },
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold"
+  },
 
-  link: { 
+  link: {
     marginTop: 10,
-     alignItems: "center" },
+    alignItems: "center"
+  },
 
-  linkText: { 
-    color: "#388e3c", 
-    fontSize: 14, 
-    fontWeight: "600" },
+  linkText: {
+    color: "#388e3c",
+    fontSize: 14,
+    fontWeight: "600"
+  },
 });
