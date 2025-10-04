@@ -15,5 +15,6 @@ const firebaseConfig = {
 // Initialize Firebase safely (important in Expo hot reload)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-export const auth = getAuth(app);
+
+ export const auth = getAuth(app);
 export const db = getFirestore(app);
